@@ -77,7 +77,7 @@ class BaseInterface(metaclass=InterfaceMeta):
     
     async def dispatch(self, command: str, message) -> list:
         if not self._dispatch_locked:
-            if command == attendance_key:
+            if command.lower == attendance_key.lower:
                 cursor.execute('SELECT * FROM attendance WHERE discord_user_id=? AND time>? AND time<? LIMIT 1',(message.author.id,datetime.datetime.now()-datetime.timedelta(days=1),datetime.datetime.now()+datetime.timedelta(days=1)))
                 if cursor.fetchone():
                     return await split_send_message(message.author, 'Your attendance for today has already been recorded.')
