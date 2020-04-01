@@ -1,5 +1,5 @@
 import os
-from credentials import BOT_TOKEN, CLIENT_ID, CLIENT_SECRET
+from credentials import BOT_TOKEN, CLIENT_ID, CLIENT_SECRET,EMAIL_HOST_USER , EMAIL_HOST_PASSWORD
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +21,12 @@ ALLOWED_HOSTS = ['srv.cpu.party']
 # Application definition
 
 INSTALLED_APPS = [
-    'oauth'
+    'oauth',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
 ]
 
 MIDDLEWARE = [
@@ -35,7 +40,7 @@ ROOT_URLCONF = 'CPUBot.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -60,6 +65,12 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+EMAIL_HOST='mail.cpu.party'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+
+
 
 
 # Password validation

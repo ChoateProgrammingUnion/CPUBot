@@ -8,6 +8,8 @@ from django.http import HttpRequest
 from django.utils.timezone import now, timedelta
 import requests
 from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import send_mail
+
 
 from CPUBot.settings import BOT_TOKEN, CLIENT_ID, CLIENT_SECRET, API_ENDPOINT, GUILD_ID, REDIRECT_URI
 
@@ -26,6 +28,8 @@ def join(request: HttpRequest):
         return HttpResponse("Missing field %s" %e, status=400)
     if not school_email.strip().endswith('@choate.edu'):
         return HttpResponse("Error: Please provide your Choate email", status=400)
+    if Record.objects.filter(school_email=school_email).exists():
+        return render(request,'confirmation_template.html',{"text":"You have already signed up for the club.",'Title':'Error'},status=400)
     try:
         record = Record(first_name=first_name,
                         last_name=last_name,
@@ -41,14 +45,88 @@ def join(request: HttpRequest):
     else:
         record.save(force_insert=True)
     
-    return HttpResponseRedirect(redirect_to=
-    '{api}/oauth2/authorize?response_type=code&client_id={cid}&scope={scope}&state={state}&redirect_uri={redirect}'.format(
+    
+    auth_addr='{api}/oauth2/authorize?response_type=code&client_id={cid}&scope={scope}&state={state}&redirect_uri={redirect}'.format(
             api=API_ENDPOINT,
             cid=CLIENT_ID,
             scope='identify%20guilds.join',
             state=record.state,
             redirect=REDIRECT_URI
-    ))
+    )
+    
+    send_mail(
+            subject='Welcome To Choate Programming Union',
+            message=f"""
+Hi {first_name},
+
+Welcome to Choate Programming Union! To fully utilize the resources we provide, we strongly encourage you to join our Discord server.
+
+Your invitation link is:
+{auth_addr}
+Please note that this link is private to you so please do not share it with others.
+
+PS: If you happen to find this email in your spam folder, please log in to your Outlook account in your browser (desktop/mobile clients don't work).
+Then navigate to your spam folder and report it as "not a spam". This will make sure you receive our future communications.
+
+Your beloved,
+CPU Bot
+""",
+            from_email='CPU Bot<bot@cpu.party>',
+            recipient_list=[school_email],
+            html_message=f"""
+<!DOCType html>
+<html>
+<head>
+    <title> Welcome To Choate Programming Union </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .monospace {{
+            font-family: 'Courier New', monospace;
+        }}
+    </style>
+</head>
+    <body>
+    <div class="monospace">
+        <img src="https://cpu.party/img/logos/1024w.png" width="100%">
+        <p>
+            Hi {first_name},
+        </p>
+        <p>
+            Welcome to Choate Programming Union! To fully utilize the resources we provide, we strongly encourage you to join our Discord server.
+        </p>
+        
+<p>
+        <a href="{auth_addr}">Click here</a> to join our server. Please note that this link is private to you so please do not share it with others.
+</p>
+
+<p>
+PS: If you happen to find this email in your spam folder, please log in to your Outlook account in your browser (desktop/mobile clients don't work).
+Then navigate to your spam folder and report it as "not a spam". This will make sure you receive our future communications.
+</p>
+<p>
+Your beloved,<br>
+CPU Bot
+</p>
+</div>
+    </body>
+</html>
+"""
+    )
+    
+    
+    return render(request,'confirmation_template.html',{
+        'title':'Success',
+        'text':f"""
+<h1> Success</h1>
+<p>
+Thank you, {first_name}. You have successfully signed up for the club. An email containing an invitation
+link to our Discord server has been sent to <span style="text-decoration:underline">{school_email}</span>.
+If you do not see it within 5 minutes, please check your spam folder. (If the email does end up in your
+spam folder, please report it as not a spam email so you'll receive future emails from us.)
+</p>
+"""
+    })
+    
 
 
 def callback(request: HttpRequest):
