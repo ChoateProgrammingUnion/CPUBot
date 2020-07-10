@@ -1,0 +1,14 @@
+version: "3"
+
+networks:
+  nginx-network:
+
+services:
+  timestamp:
+    container_name: CPUBot
+    build: ./CPUBot
+    restart: always
+    networks:
+      - nginx-network
+    volumes:
+      - ./CPUBot/:/usr/src/app/
